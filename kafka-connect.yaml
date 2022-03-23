@@ -1,0 +1,27 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: postgres-connection
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  image: dipayanp007/debezium-connector:1.1.3
+  replicas: 1
+  bootstrapServers: kafka-cluster-kafka-bootstrap:9092
+  config:
+    group.id: kafka-cluster
+    offset.storage.topic: kafka-cluster-offsets
+    config.storage.topic: kafka-cluster-configs
+    status.storage.topic: kafka-cluster-status
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+    topic.creation.default.replication.factor: 1
+    topic.creation.default.partitions: 1
+    topic.creation.default.cleanup.policy: "compact"
+    topic.creation.default.compression.type: "gzip"
+    auto.create.topics.enable: true
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 3
+    failureThreshold: 5

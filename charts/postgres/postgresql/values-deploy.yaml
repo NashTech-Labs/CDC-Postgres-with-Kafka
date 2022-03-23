@@ -1,0 +1,64 @@
+global:
+  postgresql:
+    postgresqlDatabase: "mydb"
+    postgresqlUsername: "admin"
+    existingSecret: "postgres-secret"
+    replicationPassword: "replica123"
+
+postgresqlExtendedConf:
+  wal_level: logical
+  #max_wal_senders: 1
+  #max_replication_slots: 1
+
+commonLabels:
+  application: postgresql
+  purpose: practice
+
+volumePermissions:
+  enabled: true
+
+replication:
+  enabled: false
+  user: repl_user
+  readReplicas: 1
+  ## ref: https://www.postgresql.org/docs/9.6/runtime-config-wal.html#GUC-WAL-LEVEL
+  ##
+  synchronousCommit: "on"
+  ## NOTE: It cannot be > readReplicas
+  ##
+  numSynchronousReplicas: 1
+
+postgresqlPostgresPassword: "admin123"
+terminationGracePeriodSeconds: "60"
+
+service:
+  type: NodePort
+  port: "5432"
+  externalTrafficPolicy: Cluster
+
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
+  size: 3Gi
+
+primary:
+  nodeSelector: 
+    nodetype: postgres
+  labels:
+    pgnode: master
+  service:
+    type: "NodePort"
+    nodePort: 32050
+
+readReplicas:
+  nodeSelector:
+    nodetype: postgres
+  labels:
+    pgnode: readReplica
+  service:
+    type: "LoadBalancer"
+
+startupProbe:
+  enabled: true
